@@ -1,10 +1,12 @@
 #!/bin/bash
 
-# https://tldp.org/HOWTO/Bash-Prompt-HOWTO/x329.html
+smul="\x1b[4m"
+rmul="\x1b[24m"
 
 chr="│"
 msg="${@}" 
-[[ -z "${1}" ]] && msg=" xXXxxXx "
+[[ -z "${1}" ]] && msg="  ;)  "
+# [[ -z "${1}" ]] && msg=" @@@ "
 
 declare -a bgList=( 
   "40m" "41m" "42m" "43m"
@@ -30,21 +32,39 @@ if [[ $((${#msg} % 2)) -eq 0 ]]; then
   len=${#msg} && minus=2
 fi
 
+padFull=$(for i in $(seq $((${#msg} + $((${#chr} * 1)))) ); do echo -n " "; done)
 padLeft=$(for i in $(seq $((len / 2 - ${minus}))); do echo -n " "; done)
 padRight=$(for i in $(seq $((len / 2 - 1))); do echo -n " "; done)
 
-echo -en "\n\x1b[4m       "
-for bg in "${bgList[@]}"; do 
-  echo -n "${chr}${padLeft}${bg}${padRight}"
-done
-echo -e "\x1b[24m"
+divider=$( 
+  res="${smul}        "
+  for bg in "${bgList[@]}"; do
+    res="${res}${padFull}"
+  done
+  res="${res} ${rmul}"
+  echo -e "${res}"
+)
+
+header=$( 
+  res="${smul}${chr}       "
+  for bg in "${bgList[@]}"; do
+    res="${res}${chr}${padLeft}${bg}${padRight}"
+  done
+  res="${res}${chr}${rmul}"
+  echo -e "${res}"
+)
+
+echo -e "${divider}"
+echo -e "${header}"
 
 for fg in "${fgList[@]}"; do
   current="${fg// /}"
 
-  echo -en " ${fg} ${chr}"
+  echo -en "${chr} ${fg} ${chr}"
   for bg in "${bgList[@]}"; do
     echo -en "\x1b[${current}\x1b[${bg}${msg}\x1b[0m${chr}"
   done
   echo
 done
+
+echo -e "${divider}\n"
